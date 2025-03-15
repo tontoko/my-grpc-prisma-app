@@ -8,8 +8,9 @@
 import { Metadata } from "@grpc/grpc-js";
 import { GrpcMethod, GrpcStreamMethod } from "@nestjs/microservices";
 import { Observable } from "rxjs";
+import { Empty } from "../google/protobuf/empty";
 
-export const protobufPackage = "user";
+export const protobufPackage = "";
 
 export interface User {
   id: number;
@@ -26,23 +27,48 @@ export interface CreateUserRequest {
   name?: string | null | undefined;
 }
 
-export const USER_PACKAGE_NAME = "user";
+export interface UpdateUserRequest {
+  id: number;
+  email: string;
+  name?: string | null | undefined;
+}
+
+export interface DeleteUserRequest {
+  id: number;
+}
+
+export interface GetAllUsersRequest {
+}
+
+export const _PACKAGE_NAME = "";
 
 export interface UserServiceClient {
   getUserById(request: GetUserByIdRequest, metadata?: Metadata): Observable<User>;
 
   createUser(request: CreateUserRequest, metadata?: Metadata): Observable<User>;
+
+  getAllUsers(request: Empty, metadata?: Metadata): Observable<User>;
+
+  deleteUserById(request: GetUserByIdRequest, metadata?: Metadata): Observable<Empty>;
+
+  updateUser(request: User, metadata?: Metadata): Observable<User>;
 }
 
 export interface UserServiceController {
   getUserById(request: GetUserByIdRequest, metadata?: Metadata): Promise<User> | Observable<User> | User;
 
   createUser(request: CreateUserRequest, metadata?: Metadata): Promise<User> | Observable<User> | User;
+
+  getAllUsers(request: Empty, metadata?: Metadata): Observable<User>;
+
+  deleteUserById(request: GetUserByIdRequest, metadata?: Metadata): void;
+
+  updateUser(request: User, metadata?: Metadata): Promise<User> | Observable<User> | User;
 }
 
 export function UserServiceControllerMethods() {
   return function (constructor: Function) {
-    const grpcMethods: string[] = ["getUserById", "createUser"];
+    const grpcMethods: string[] = ["getUserById", "createUser", "getAllUsers", "deleteUserById", "updateUser"];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
       GrpcMethod("UserService", method)(constructor.prototype[method], method, descriptor);
