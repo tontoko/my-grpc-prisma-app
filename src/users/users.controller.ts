@@ -2,8 +2,6 @@ import {
   Controller,
   Get,
   Post,
-  Body,
-  Param,
   Put,
   Delete,
   NotFoundException,
@@ -15,7 +13,12 @@ import {
   User,
   UserServiceController,
   UserServiceControllerMethods,
+  UpdateUserRequest,
+  DeleteUserRequest,
 } from 'src/proto/user';
+import { Observable, Subject, from } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { Empty } from 'src/google/protobuf/empty';
 
 @UserServiceControllerMethods()
 @Controller('users')
@@ -23,41 +26,63 @@ export class UsersController implements UserServiceController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  findAll(): Promise<User[]> {
-    return this.usersService.findAll();
+  getAllUsers(): Observable<User> {
+    const subject = new Subject<User>();
+
+    this.usersService
+      .findAll()
+      .then((users) => {
+        users.forEach((user) => {
+          subject.next(user);
+        });
+        subject.complete();
+      })
+      .catch((error) => {
+        subject.error(error);
+      });
+
+    return subject.asObservable();
   }
 
-  async getUserById(request: GetUserByIdRequest): Promise<User> {
-    const user = await this.usersService.findOne(+request.id);
-    if (!user) {
-      throw new NotFoundException(`User with id ${request.id} not found`);
-    }
-    return user;
+  @Get(':id')
+  getUserById(request: GetUserByIdRequest): Observable<User> {
+    return from(this.usersService.findOne(+request.id)).pipe(
+      map((user) => {
+        if (!user) {
+          throw new NotFoundException(`User with id ${request.id} not found`);
+        }
+        return user;
+      }),
+    );
   }
 
-  async createUser(request: CreateUserRequest): Promise<User> {
+  @Post()
+  createUser(request: CreateUserRequest): Observable<User> {
     const createUserDto = { email: request.email, name: request.name };
-    return this.usersService.create(createUserDto);
+    return from(this.usersService.create(createUserDto));
   }
 
   @Put(':id')
-  async update(
-    @Param('id') id: string,
-    @Body() updateUserDto: { email?: string; name?: string },
-  ): Promise<User> {
-    const user = await this.usersService.update(+id, updateUserDto);
-    if (!user) {
-      throw new NotFoundException(`User with id ${id} not found`);
-    }
-    return user;
+  updateUser(request: UpdateUserRequest): Observable<User> {
+    return from(this.usersService.update(request.id, request)).pipe(
+      map((user) => {
+        if (!user) {
+          throw new NotFoundException(`User with id ${request.id} not found`);
+        }
+        return user;
+      }),
+    );
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string): Promise<User> {
-    const user = await this.usersService.remove(+id);
-    if (!user) {
-      throw new NotFoundException(`User with id ${id} not found`);
-    }
-    return user;
+  deleteUserById(request: DeleteUserRequest): Observable<Empty> {
+    return from(this.usersService.remove(+request.id)).pipe(
+      map((user) => {
+        if (!user) {
+          throw new NotFoundException(`User with id ${request.id} not found`);
+        }
+        return {};
+      }),
+    );
   }
 }
