@@ -9,10 +9,17 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { User } from '@prisma/client';
+import {
+  CreateUserRequest,
+  GetUserByIdRequest,
+  User,
+  UserServiceController,
+  UserServiceControllerMethods,
+} from 'src/proto/user';
 
+@UserServiceControllerMethods()
 @Controller('users')
-export class UsersController {
+export class UsersController implements UserServiceController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
@@ -20,19 +27,16 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
-  @Get(':id')
-  async findOne(@Param('id') id: string): Promise<User> {
-    const user = await this.usersService.findOne(+id);
+  async getUserById(request: GetUserByIdRequest): Promise<User> {
+    const user = await this.usersService.findOne(+request.id);
     if (!user) {
-      throw new NotFoundException(`User with id ${id} not found`);
+      throw new NotFoundException(`User with id ${request.id} not found`);
     }
     return user;
   }
 
-  @Post()
-  create(
-    @Body() createUserDto: { email: string; name?: string },
-  ): Promise<User> {
+  async createUser(request: CreateUserRequest): Promise<User> {
+    const createUserDto = { email: request.email, name: request.name };
     return this.usersService.create(createUserDto);
   }
 

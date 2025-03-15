@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { User } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { User } from 'src/proto/user';
 
 @Injectable()
 export class UsersService {
@@ -21,7 +21,7 @@ export class UsersService {
     return user;
   }
 
-  async create(data: { email: string; name?: string }): Promise<User> {
+  async create(data: { email: string; name?: string | null }): Promise<User> {
     return this.prisma.user.create({
       data,
     });
@@ -29,7 +29,7 @@ export class UsersService {
 
   async update(
     id: number,
-    data: { email?: string; name?: string },
+    data: { email?: string; name?: string | null },
   ): Promise<User> {
     try {
       const user = await this.prisma.user.update({

@@ -5,7 +5,7 @@ package user;
 message User {
   int32 id = 1;
   string email = 2;
-  string name = 3;
+  optional string name = 3;
 }
 
 service UserService {
@@ -19,5 +19,5 @@ message GetUserByIdRequest {
 
 message CreateUserRequest {
   string email = 1;
-  string name = 2;
+  optional string name = 2;
 }

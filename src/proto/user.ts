@@ -14,7 +14,7 @@ export const protobufPackage = "user";
 export interface User {
   id: number;
   email: string;
-  name: string;
+  name?: string | null | undefined;
 }
 
 export interface GetUserByIdRequest {
@@ -23,7 +23,7 @@ export interface GetUserByIdRequest {
 
 export interface CreateUserRequest {
   email: string;
-  name: string;
+  name?: string | null | undefined;
 }
 
 export const USER_PACKAGE_NAME = "user";
