@@ -1,126 +1,103 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
-import { AppModule } from '../app.module';
+import { UsersController } from './users.controller';
+import { UsersService } from './users.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { User } from '@prisma/client';
+import { firstValueFrom } from 'rxjs';
+import { User } from 'src/proto/user';
 
-describe('UsersController (e2e)', () => {
-  let app: INestApplication;
+describe('UsersController', () => {
+  let controller: UsersController;
   let prismaService: PrismaService;
   let createdUser: User;
 
   beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [UsersController],
+      providers: [UsersService, PrismaService],
     }).compile();
 
-    app = moduleFixture.createNestApplication();
-    prismaService = moduleFixture.get<PrismaService>(PrismaService);
+    controller = module.get<UsersController>(UsersController);
+    prismaService = module.get<PrismaService>(PrismaService);
 
+    // テストデータの作成
     createdUser = await prismaService.user.create({
       data: {
         email: 'test@example.com',
         name: 'Test User',
       },
     });
-
-    await app.init();
   });
 
   afterEach(async () => {
     await prismaService.user.deleteMany();
-    await app.close();
   });
 
-  describe('findAll (GET /users)', () => {
-    it('should return an array of users', () => {
-      return request(app.getHttpServer())
-        .get('/users')
-        .expect(200)
-        .expect((res) => {
-          expect(res.body).toBeInstanceOf(Array);
-        });
-    });
-  });
+  describe('getAllUsers', () => {
+    it('should return all users', async () => {
+      const usersObservable = controller.getAllUsers();
+      const users: User[] = [];
 
-  describe('findOne (GET /users/:id)', () => {
-    it('should return a user with the given id', () => {
-      return request(app.getHttpServer())
-        .get(`/users/${createdUser.id}`)
-        .expect(200)
-        .expect((res) => {
-          const user: User = res.body as User;
-          expect(user).toHaveProperty('id', createdUser.id);
-          expect(user.email).toBe('test@example.com');
-          expect(user.name).toBe('Test User');
+      await new Promise<void>((resolve) => {
+        usersObservable.subscribe({
+          next: (user) => users.push(user),
+          complete: () => resolve(),
         });
-    });
+      });
 
-    it('should return 404 if user is not found', () => {
-      return request(app.getHttpServer()).get('/users/999').expect(404);
+      expect(users).toHaveLength(1);
+      expect(users[0].email).toBe('test@example.com');
     });
   });
 
-  describe('create (POST /users)', () => {
-    it('should create a new user', () => {
-      const createUserDto = { email: 'new@example.com', name: 'New User' };
-      return request(app.getHttpServer())
-        .post('/users')
-        .send(createUserDto)
-        .expect(201)
-        .expect((res) => {
-          const user: User = res.body as User;
-          expect(user).toHaveProperty('id');
-          expect(user.email).toBe(createUserDto.email);
-          expect(user.name).toBe(createUserDto.name);
-        });
+  describe('getUserById', () => {
+    it('should return a user by id', async () => {
+      const user = await firstValueFrom(
+        controller.getUserById({ id: createdUser.id }),
+      );
+
+      expect(user.id).toBe(createdUser.id);
+      expect(user.email).toBe('test@example.com');
     });
   });
 
-  describe('update (PUT /users/:id)', () => {
-    it('should update a user with the given id', () => {
-      const updateUserDto = {
-        email: 'updated@example.com',
-        name: 'Updated User',
-      };
-      return request(app.getHttpServer())
-        .put(`/users/${createdUser.id}`)
-        .send(updateUserDto)
-        .expect(200)
-        .expect((res) => {
-          const user: User = res.body as User;
-          expect(user).toHaveProperty('id', createdUser.id);
-          expect(user.email).toBe(updateUserDto.email);
-          expect(user.name).toBe(updateUserDto.name);
-        });
-    });
+  describe('createUser', () => {
+    it('should create a new user', async () => {
+      const newUser = await firstValueFrom(
+        controller.createUser({
+          email: 'new@example.com',
+          name: 'New User',
+        }),
+      );
 
-    it('should return 404 if user is not found', () => {
-      const updateUserDto = {
-        email: 'updated@example.com',
-        name: 'Updated User',
-      };
-      return request(app.getHttpServer())
-        .put('/users/999')
-        .send(updateUserDto)
-        .expect(404);
+      expect(newUser.email).toBe('new@example.com');
+      expect(newUser.name).toBe('New User');
     });
   });
 
-  describe('remove (DELETE /users/:id)', () => {
-    it('should remove a user with the given id', () => {
-      return request(app.getHttpServer())
-        .delete(`/users/${createdUser.id}`)
-        .expect(200)
-        .expect((res) => {
-          const user: User = res.body as User;
-          expect(user).toHaveProperty('id', createdUser.id);
-        });
-    });
+  describe('updateUser', () => {
+    it('should update an existing user', async () => {
+      const updatedUser = await firstValueFrom(
+        controller.updateUser({
+          id: createdUser.id,
+          name: 'Updated User',
+          email: 'edited@example.com',
+        }),
+      );
 
-    it('should return 404 if user is not found', () => {
-      return request(app.getHttpServer()).delete('/users/999').expect(404);
+      expect(updatedUser.id).toBe(createdUser.id);
+      expect(updatedUser.email).toBe('edited@example.com');
+      expect(updatedUser.name).toBe('Updated User');
+    });
+  });
+
+  describe('deleteUserById', () => {
+    it('should delete a user', async () => {
+      await firstValueFrom(controller.deleteUserById({ id: createdUser.id }));
+
+      const deletedUser = await prismaService.user.findUnique({
+        where: { id: createdUser.id },
+      });
+      expect(deletedUser).toBeNull();
     });
   });
 });

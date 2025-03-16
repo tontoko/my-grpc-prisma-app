@@ -1,0 +1,41 @@
+# ディレクトリ構成
+
+- `my-grpc-prisma-app/`
+  - `.env`
+  - `src/`
+    - `app.controller.spec.ts`
+    - `app.controller.ts`
+    - `app.module.ts`
+    - `app.service.ts`
+    - `main.ts`
+    - `prisma/`
+      - `schema.prisma`
+      - `migrations/`
+        - `migration_lock.toml`
+        - `20250315072418_init/`
+          - `migration.sql`
+    - `proto/`
+      - `user.proto`
+    - `users/`
+      - `users.controller.spec.ts`
+      - `users.controller.ts`
+      - `users.module.ts`
+      - `users.service.spec.ts`
+      - `users.service.ts`
+    - `test/`
+      - `app.e2e-spec.ts`
+      - `jest-e2e.json`
+    - `.gitignore`
+    - `.prettierrc`
+    - `eslint.config.mjs`
+    - `nest-cli.json`
+    - `package.json`
+    - `pnpm-lock.yaml`
+    - `README.md`
+    - `tsconfig.build.json`
+    - `tsconfig.json`
+    - `cline_task_workspace.md`
+    - `.clinerules`
+
+# テスト
+- テストデータはモックせず、 `beforeEach` で作成すること

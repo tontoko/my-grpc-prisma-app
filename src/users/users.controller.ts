@@ -15,7 +15,7 @@ import {
   UserServiceControllerMethods,
   UpdateUserRequest,
   DeleteUserRequest,
-} from 'src/proto/user';
+} from '../proto/user';
 import { Observable, Subject, from } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Empty } from 'src/google/protobuf/empty';
