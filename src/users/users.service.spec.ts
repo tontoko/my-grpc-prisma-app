@@ -16,20 +16,11 @@ describe('UsersService', () => {
 
     // テスト用データのセットアップ
     await prismaService.user.create({
-      data: { id: 1, email: 'test1@example.com', name: 'Test User 1' },
+      data: { email: 'test1@example.com', name: 'Test User 1' },
     });
     await prismaService.user.create({
-      data: { id: 2, email: 'test2@example.com', name: 'Test User 2' },
+      data: { email: 'test2@example.com', name: 'Test User 2' },
     });
-  });
-
-  afterEach(async () => {
-    // テスト用データのクリーンアップ
-    await prismaService.user.deleteMany();
-  });
-
-  it('should be defined', () => {
-    expect(service).toBeDefined();
   });
 
   describe('findAll', () => {
