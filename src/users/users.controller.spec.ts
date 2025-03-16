@@ -1,23 +1,23 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
-import { PrismaService } from '../prisma/prisma.service';
+import { TestPrismaService } from '../prisma/test-prisma.service';
 import { firstValueFrom } from 'rxjs';
 import { User } from 'src/proto/user';
 
 describe('UsersController', () => {
   let controller: UsersController;
-  let prismaService: PrismaService;
+  let prismaService: TestPrismaService;
   let createdUser: User;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UsersController],
-      providers: [UsersService, PrismaService],
+      providers: [UsersService, TestPrismaService],
     }).compile();
 
     controller = module.get<UsersController>(UsersController);
-    prismaService = module.get<PrismaService>(PrismaService);
+    prismaService = module.get<TestPrismaService>(TestPrismaService);
 
     // テストデータの作成
     createdUser = await prismaService.user.create({

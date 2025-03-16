@@ -14,6 +14,7 @@
         - `migration_lock.toml`
         - `20250315072418_init/`
           - `migration.sql`
+      - `test-prisma.service.ts`
     - `proto/`
       - `user.proto`
     - `users/`
@@ -22,20 +23,26 @@
       - `users.module.ts`
       - `users.service.spec.ts`
       - `users.service.ts`
-    - `test/`
-      - `app.e2e-spec.ts`
-      - `jest-e2e.json`
-    - `.gitignore`
-    - `.prettierrc`
-    - `eslint.config.mjs`
-    - `nest-cli.json`
-    - `package.json`
-    - `pnpm-lock.yaml`
-    - `README.md`
-    - `tsconfig.build.json`
-    - `tsconfig.json`
-    - `cline_task_workspace.md`
-    - `.clinerules`
+  - `test/`
+    - `app.e2e-spec.ts`
+    - `jest-e2e.json`
+  - `.gitignore`
+  - `.prettierrc`
+  - `eslint.config.mjs`
+  - `nest-cli.json`
+  - `package.json`
+  - `pnpm-lock.yaml`
+  - `README.md`
+  - `tsconfig.build.json`
+  - `tsconfig.json`
+  - `cline_task_workspace.md`
+  - `.clinerules`
 
-# テスト
-- テストデータはモックせず、 `beforeEach` で作成すること
+# 使用ライブラリ
+- NestJS
+- Prisma
+- RxJS
+
+# コーディングルール
+- テスト用DBに接続するための`TestPrismaService`を作成する。
+- テストファイルでは`TestPrismaService`を使用する。
