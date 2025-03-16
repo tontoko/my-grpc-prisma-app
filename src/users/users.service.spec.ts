@@ -1,18 +1,25 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
-import { PrismaService } from '../prisma/prisma.service';
+import { TestPrismaService } from '../prisma/testPrismaClient.service';
 
 describe('UsersService', () => {
   let service: UsersService;
-  let prismaService: PrismaService;
+  let prismaService: TestPrismaService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [UsersService, PrismaService],
+      providers: [
+        {
+          provide: UsersService,
+          useFactory: (prisma: TestPrismaService) => new UsersService(prisma),
+          inject: [TestPrismaService],
+        },
+        TestPrismaService,
+      ],
     }).compile();
 
     service = module.get<UsersService>(UsersService);
-    prismaService = module.get<PrismaService>(PrismaService);
+    prismaService = module.get<TestPrismaService>(TestPrismaService);
 
     // テスト用データのセットアップ
     await prismaService.user.create({

@@ -3,21 +3,28 @@ import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { firstValueFrom } from 'rxjs';
 import { User } from '../proto/user';
-import { PrismaService } from '../prisma/prisma.service';
+import { TestPrismaService } from '../prisma/testPrismaClient.service';
 
 describe('UsersController', () => {
   let controller: UsersController;
-  let prismaService: PrismaService;
+  let prismaService: TestPrismaService;
   let createdUser: User;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UsersController],
-      providers: [UsersService, PrismaService],
+      providers: [
+        TestPrismaService,
+        {
+          provide: UsersService,
+          useFactory: (prisma: TestPrismaService) => new UsersService(prisma),
+          inject: [TestPrismaService],
+        },
+      ],
     }).compile();
 
     controller = module.get<UsersController>(UsersController);
-    prismaService = module.get<PrismaService>(PrismaService);
+    prismaService = module.get<TestPrismaService>(TestPrismaService);
 
     // テストデータの作成
     createdUser = await prismaService.user.create({
